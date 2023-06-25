@@ -1,0 +1,6 @@
+name: PvP-Reborn
+version: '${project.version}'
+main: me.pebbleprojects.pvpreborn.PvP
+commands:
+  PvP:
+    description: Main command for PvP
