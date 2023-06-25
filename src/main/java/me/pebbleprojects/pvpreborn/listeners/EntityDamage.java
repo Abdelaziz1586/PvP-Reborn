@@ -23,6 +23,8 @@ public class EntityDamage implements Listener {
         if (entity instanceof Player) {
             final Player player = (Player) entity;
 
+            player.setMaximumNoDamageTicks(16);
+
             if (handler.players.contains(player)) {
                 final EntityDamageEvent.DamageCause cause = e.getCause();
                 if (cause.equals(EntityDamageEvent.DamageCause.FALL)) {

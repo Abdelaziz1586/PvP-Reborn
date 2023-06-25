@@ -63,16 +63,17 @@ public class Handler {
 
         final PluginManager pm = main.getServer().getPluginManager();
 
-        pm.registerEvents(new AsyncPlayerChat(this), main);
-        pm.registerEvents(new BlockBreak(playerDataHandler), main);
-        pm.registerEvents(new EntityDamage(playerDataHandler), main);
-        pm.registerEvents(new FoodLevelChange(playerDataHandler), main);
+        pm.registerEvents(new BlockBreak(), main);
+        pm.registerEvents(new PlayerDeath(), main);
+        pm.registerEvents(new FoodLevelChange(), main);
+        pm.registerEvents(new ProjectileLaunch(), main);
+        pm.registerEvents(new RightClickNPC(this), main);
         pm.registerEvents(new InventoryClick(this), main);
-        pm.registerEvents(new PlayerDeath(playerDataHandler), main);
         pm.registerEvents(new PlayerDropItem(this), main);
+        pm.registerEvents(new AsyncPlayerChat(this), main);
         pm.registerEvents(new PlayerJoin(playerDataHandler), main);
         pm.registerEvents(new PlayerQuit(playerDataHandler), main);
-        pm.registerEvents(new RightClickNPC(this), main);
+        pm.registerEvents(new EntityDamage(playerDataHandler), main);
     }
 
     public void shutdown() {

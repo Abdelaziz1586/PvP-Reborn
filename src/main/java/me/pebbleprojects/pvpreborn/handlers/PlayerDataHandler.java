@@ -106,6 +106,7 @@ public class PlayerDataHandler {
         playerInventory.setBoots(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true));
 
         playerInventory.setItem(0, createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true));
+        playerInventory.setItem(1, createItemStack(Material.FISHING_ROD, "§7Rod", null, 1, true));
 
         final Object o = handler.getData("locations.game");
         if (o instanceof Location) handler.runTask(() -> player.teleport((Location) o));
