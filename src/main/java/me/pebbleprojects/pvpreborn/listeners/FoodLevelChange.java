@@ -8,8 +8,8 @@ public class FoodLevelChange implements Listener {
 
 
     @EventHandler
-    public void onFoodLevelChange(final FoodLevelChangeEvent e) {
-        e.setCancelled(true);
+    public void onFoodLevelChange(final FoodLevelChangeEvent event) {
+        event.setCancelled(true);
     }
 
 }

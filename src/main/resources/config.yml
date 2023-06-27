@@ -1,47 +1,44 @@
 otherMessages:
   itemDropDestruction:
-    confirmMessage: "&cAre you sure you want to destroy this item? If so, drop it from your inventory &e1 &cmore time to confirm. You will NOT be able to get this item back in your inventory!%nl%&eNote: destruction request will be removed from our system in &b5 &eseconds if no action was taken."
-    destroyedMessage: "&aItem has been destroyed."
+    confirmMessage: "%prefix% &cAre you sure you want to destroy this item? If so, drop it from your inventory &e1 &cmore time to confirm. You will NOT be able to get this item back in your inventory!%nl%&eNote: destruction request will be removed from our system in &b5 &eseconds if no action was taken."
+    destroyedMessage: "%prefix% &aItem has been destroyed."
   invalidArguments:
     admin:
       - "&6PvP &eHelp Commands"
       - "&7"
-      - "&e/pvp shop &7Opens shop menu"
-      - "&e/pvp setShopNPC &7Creates a shop npc"
-      - "&e/pvp setProfileNPC &7Creates a profile npc"
-      - "&e/pvp setGameLocation &7Sets game location"
-      - "&e/pvp reload &7Reloads config and data files"
-      - "&e/pvp removeNPC <ID> &7Removes NPC with a specific ID"
-      - "&e/pvp toggleProfile &7Locks/Unlocks your profile"
-      - "&e/pvp profile [player] &7Checks profile of yours or others"
+      - "&e/setShopNPC &7Creates a shop npc"
+      - "&e/setGameLocation &7Sets game location"
+      - "&e/reload &7Reloads config and data files"
+      - "&e/removeNPC <ID> &7Removes NPC with a specific ID"
+      - "&e/toggleProfile &7Locks/Unlocks your profile"
+      - "&e/profile [player] &7Checks profile of yours or others"
     player:
       - "&6PvP &eHelp Commands"
       - "&7"
-      - "&e/pvp shop &7Opens shop menu"
-      - "&e/pvp toggleProfile &7Locks/Unlocks your profile"
-      - "&e/pvp profile [player] &7Checks profile of yours or others"
+      - "&e/toggleProfile &7Locks/Unlocks your profile"
+      - "&e/profile [player] &7Checks profile of yours or others"
 
 chat-format:
   enabled: true
-  format: "&7%player% &7%message%"
+  format: "%pvpRank% &7%player% &7%message%"
 
 kill: # When attacker is set, public broadcasts aren't concluded.
-  coins: 20
+  points: 20
   messages:
     chat:
       victim:
         enabled: true
-        message: "&cYou have been killed by &e%attacker%"
+        message: "%prefix% &cYou have been killed by &e%attacker%"
       attacker:
         enabled: true
-        message: "&aYou have killed &e%victim% &6&l+%coins%G"
+        message: "%prefix% &aYou have killed &e%victim% &6&l+%points%G"
     action-bar:
       victim:
         enabled: true
         message: "&c&lYOU HAVE DIED!"
       attacker:
         enabled: true
-        message: "&6&l+%coins%G"
+        message: "&6&l+%points%G"
 
 deathMessages: # When attacker is not set, as well as public broadcasts.
   randomDeath:
@@ -49,10 +46,10 @@ deathMessages: # When attacker is not set, as well as public broadcasts.
       chat:
         enabled: true
         messages: # Random Messages
-          - "&cYou have died!"
-          - "&cWoah! Take care next time buddy!"
-          - "&cHmm, that's weird..."
-          - "&cHow?!"
+          - "%prefix% &cYou have died!"
+          - "%prefix% &cWoah! Take care next time buddy!"
+          - "%prefix% &cHmm, that's weird..."
+          - "%prefix% &cHow?!"
       title-screen:
         enabled: true
         title: "&cYOU DIED"
@@ -67,16 +64,16 @@ deathMessages: # When attacker is not set, as well as public broadcasts.
     broadcast:
       enabled: true
       messages: # Random Messages
-        - "&c%victim% has been killed by boredom."
-        - "&c%victim% wasn't having a good day and died!"
-        - "&cAfter a long journey, &e%victim% &chas died!"
+        - "%prefix% &c%victim% has been killed by boredom."
+        - "%prefix% &c%victim% wasn't having a good day and died!"
+        - "%prefix% &cAfter a long journey, &e%victim% &chas died!"
   fireDeath:
     self:
       chat:
         enabled: true
         messages: # Random Messages
-          - "&cThat was &6hot&c, wasn't it?"
-          - "&cYou really should take care..."
+          - "%prefix% &cThat was &6hot&c, wasn't it?"
+          - "%prefix% &cYou really should take care..."
       title-screen:
         enabled: true
         title: "&cYOU DIED"
@@ -89,23 +86,17 @@ deathMessages: # When attacker is not set, as well as public broadcasts.
     broadcast:
       enabled: true
       messages: # Random Messages
-        - "&c%victim% caught on fire and died!"
-        - "&c%victim% couldn't escape fire and died!"
-
-profile:
-  npc:
-    name: "&b&lProfile"
-    skinName: "Notch"
-  guiName: "&6%query%'s &bProfile"
+        - "%prefix% &c%victim% caught on fire and died!"
+        - "%prefix% &c%victim% couldn't escape fire and died!"
 
 shop:
   npc:
     name: "&e&lShop"
     skinName: "HoneySalted"
   guiName: "&ePvP Shop"
-  noEnoughCoins: "&cYou don't have enough coins to buy &e%query%"
-  fullInventory: "&cYou don't have any free space to buy &e%query%"
-  alreadyHave: "&cYou already have this item!"
+  noEnoughSouls: "%prefix% &cYou don't have enough points to buy &e%query%"
+  fullInventory: "%prefix% &cYou don't have any free space to buy &e%query%"
+  alreadyHave: "%prefix% &cYou already have this item!"
   items:
     diamond_sword:
       canBuyMultipleOf: false
@@ -123,7 +114,7 @@ shop:
           enabled: false
           lore:
             - "&1Deals +7 damage"
-      purchaseMessage: "&aEnjoy your purchase!"
+      purchaseMessage: "%prefix% &aEnjoy your purchase!"
     diamond_leggings:
       canBuyMultipleOf: false
       amount: 1
@@ -140,7 +131,7 @@ shop:
           enabled: false
           lore:
             - "&1Leggings armor"
-      purchaseMessage: "&aEnjoy your purchase!"
+      purchaseMessage: "%prefix% &aEnjoy your purchase!"
 
 scoreboard:
   title: "&6PvP"
@@ -149,10 +140,10 @@ scoreboard:
     - ""
     - "&7Kills &8» &e%kills%"
     - ""
-    - "&7Kill Streaks &8» &e%killStreaks%"
+    - "&7Points &8» &e%points%"
     - ""
-    - "&7Deaths &8» &e%deaths%"
+    - "&7Souls &8» &e%souls%"
     - ""
-    - "&7Coins &8» &e%coins%"
+    - "&7Kill Streak &8» &e%killStreak%"
     - ""
     - "&ePlay.VampiresMC.com"

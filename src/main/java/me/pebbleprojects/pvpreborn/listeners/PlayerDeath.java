@@ -7,8 +7,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 public class PlayerDeath implements Listener {
 
     @EventHandler
-    public void onPlayerDeath(final PlayerDeathEvent e) {
-        e.setDeathMessage("");
+    public void onPlayerDeath(final PlayerDeathEvent event) {
+        event.setDeathMessage("");
     }
 
 }

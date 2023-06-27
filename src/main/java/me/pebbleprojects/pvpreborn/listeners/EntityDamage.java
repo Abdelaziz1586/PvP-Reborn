@@ -17,41 +17,41 @@ public class EntityDamage implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamage(final EntityDamageEvent e) {
-        Entity entity = e.getEntity();
+    public void onEntityDamage(final EntityDamageEvent event) {
+        Entity entity = event.getEntity();
 
         if (entity instanceof Player) {
             final Player player = (Player) entity;
 
-            player.setMaximumNoDamageTicks(16);
+            player.setMaximumNoDamageTicks(17);
 
             if (handler.players.contains(player)) {
-                final EntityDamageEvent.DamageCause cause = e.getCause();
+                final EntityDamageEvent.DamageCause cause = event.getCause();
                 if (cause.equals(EntityDamageEvent.DamageCause.FALL)) {
-                    e.setCancelled(true);
+                    event.setCancelled(true);
                     return;
                 }
 
                 if (cause.equals(EntityDamageEvent.DamageCause.VOID)) {
-                    e.setCancelled(true);
+                    event.setCancelled(true);
                     handler.death(player, null, cause);
                     return;
                 }
 
                 Player attacker = null;
 
-                if (e instanceof EntityDamageByEntityEvent) {
-                    entity = ((EntityDamageByEntityEvent) e).getDamager();
+                if (event instanceof EntityDamageByEntityEvent) {
+                    entity = ((EntityDamageByEntityEvent) event).getDamager();
                     if (entity instanceof Player) {
                         attacker = (Player) entity;
-                        if (!handler.players.contains(attacker)) {
-                            e.setCancelled(true);
+                        if (!handler.players.contains(attacker) && handler.buildMode.contains(attacker.getUniqueId())) {
+                            event.setCancelled(true);
                             return;
                         }
                     }
                 }
 
-                if (player.getHealth() <= e.getDamage())
+                if (player.getHealth() <= event.getDamage())
                     handler.death(player, attacker, cause);
             }
         }

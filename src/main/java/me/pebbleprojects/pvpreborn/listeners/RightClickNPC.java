@@ -15,17 +15,13 @@ public class RightClickNPC implements Listener {
     }
 
     @EventHandler
-    public void onRightClickNPC(final RightClickNPCEvent e) {
+    public void onRightClickNPC(final RightClickNPCEvent event) {
         handler.runTask(() -> {
-            final Player player = e.getPlayer();
+            final Player player = event.getPlayer();
             if (handler.playerDataHandler.players.contains(player)) {
-                if (handler.npcHandler.getCustomData(e.getNPC().getNpc()) == 0) {
-                    player.performCommand("pvp shop");
-                    return;
+                if (handler.npcHandler.getCustomData(event.getNPC().getNpc()) == 0) {
+                    handler.shopHandler.openShopMenu(player, 0);
                 }
-
-                if (handler.npcHandler.getCustomData(e.getNPC().getNpc()) == 1)
-                    player.performCommand("pvp profile");
             }
         });
     }

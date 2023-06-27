@@ -15,8 +15,8 @@ public class PlayerQuit implements Listener {
     }
 
     @EventHandler
-    public void onPlayerQuit(final PlayerQuitEvent e) {
-        final Player player = e.getPlayer();
+    public void onPlayerQuit(final PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
         if (handler.players.contains(player)) handler.leave(player);
     }
 }

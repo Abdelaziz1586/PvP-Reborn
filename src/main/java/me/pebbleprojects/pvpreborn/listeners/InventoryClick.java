@@ -20,29 +20,29 @@ public class InventoryClick implements Listener {
     }
 
     @EventHandler
-    public void onInventoryClick(final InventoryClickEvent e) {
-        final Player p = (Player) e.getWhoClicked();
-        if (handler.playerDataHandler.players.contains(p) && e.getInventory().getHolder() == null) {
-            e.setCancelled(true);
+    public void onInventoryClick(final InventoryClickEvent event) {
+        final Player p = (Player) event.getWhoClicked();
+        if (handler.playerDataHandler.players.contains(p) && event.getInventory().getHolder() == null) {
+            event.setCancelled(true);
 
-            final Inventory inventory = e.getClickedInventory();
+            final Inventory inventory = event.getClickedInventory();
 
-            if (inventory == null || e.getClickedInventory().getSize() != 9) return;
+            if (inventory == null || event.getClickedInventory().getSize() != 9) return;
 
             handler.runTask(() -> {
-                final ItemStack clickedItem = e.getCurrentItem();
+                final ItemStack clickedItem = event.getCurrentItem();
 
                 if (clickedItem == null || clickedItem.getType().equals(Material.AIR))
                     return;
                 final ItemMeta clickedItemMeta = clickedItem.getItemMeta();
 
-                if (e.getRawSlot() == 8) {
+                if (event.getRawSlot() == 8) {
                     final int page = Integer.parseInt(clickedItemMeta.getLore().get(1).split(": ")[1]) + 1;
                     handler.shopHandler.openShopMenu(p, page);
                     return;
                 }
 
-                if (e.getRawSlot() == 0) {
+                if (event.getRawSlot() == 0) {
                     if (CraftItemStack.asNMSCopy(clickedItem).getTag().hasKey("previousPage")) {
                         final int page = Integer.parseInt(clickedItemMeta.getLore().get(1).split(": ")[1]) - 1;
                         handler.shopHandler.openShopMenu(p, page);

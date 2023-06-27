@@ -1,24 +1,28 @@
 package me.pebbleprojects.pvpreborn.handlers;
 
 import fr.mrmicky.fastboard.FastBoard;
+import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_8_R3.*;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.*;
 
 public class PlayerDataHandler {
 
+    public final LuckPerms api;
     private final Handler handler;
     public final ArrayList<Player> players;
+    public final ArrayList<UUID> buildMode;
     public final HashMap<UUID, Player> lastDamage;
     private final HashMap<UUID, Integer> killStreaks;
     private final HashMap<UUID, FastBoard> scoreboards;
@@ -30,6 +34,17 @@ public class PlayerDataHandler {
         lastDamage = new HashMap<>();
         scoreboards = new HashMap<>();
         killStreaks = new HashMap<>();
+        buildMode = new ArrayList<>();
+
+        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+
+        if (provider != null) {
+            api = provider.getProvider();
+            return;
+        }
+
+        api = null;
+        handler.main.getServer().getPluginManager().disablePlugin(handler.main);
     }
 
     public void shutdown() {
@@ -63,7 +78,7 @@ public class PlayerDataHandler {
     }
 
     public void join(final Player player) {
-        final Object o = handler.getData("locations.game");
+        final Object o = handler.getData("game.location");
         if (!(o instanceof Location)) {
             if (player.isOp()) {
                 player.sendMessage("§cYou haven't set the game location yet.");
@@ -74,7 +89,7 @@ public class PlayerDataHandler {
         }
 
         players.add(player);
-        getPlayerReady(player);
+        getPlayerReady(player, true);
         player.setFoodLevel(20);
         handler.npcHandler.loadNPCs(player);
         handler.packetReader.inject(player);
@@ -97,22 +112,37 @@ public class PlayerDataHandler {
         handler.packetReader.uninject(player);
     }
 
-    public void getPlayerReady(final Player player) {
+    public void getPlayerReady(final Player player, final boolean firstJoin) {
+        handler.runTask(() -> player.setGameMode(GameMode.SURVIVAL));
+
         final PlayerInventory playerInventory = player.getInventory();
 
-        playerInventory.setHelmet(createItemStack(Material.IRON_HELMET, "§7", null, 1, true));
-        playerInventory.setChestplate(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true));
-        playerInventory.setLeggings(createItemStack(Material.IRON_LEGGINGS, "§7", null, 1, true));
-        playerInventory.setBoots(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true));
+        playerInventory.clear();
+        playerInventory.setHelmet(null);
+        playerInventory.setChestplate(null);
+        playerInventory.setLeggings(null);
+        playerInventory.setBoots(null);
 
-        playerInventory.setItem(0, createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true));
-        playerInventory.setItem(1, createItemStack(Material.FISHING_ROD, "§7Rod", null, 1, true));
+        setKit(player);
 
-        final Object o = handler.getData("locations.game");
-        if (o instanceof Location) handler.runTask(() -> player.teleport((Location) o));
+        final Object o = handler.getData("game.location");
+
+        if (o instanceof Location) {
+            if (firstJoin) {
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.runTask(() -> player.teleport((Location) o));
+                    }
+                }, 50);
+            } else {
+                handler.runTask(() -> player.teleport((Location) o));
+            }
+        }
 
         player.setFireTicks(0);
         updateScoreboard(player);
+        updatePlayerRank(player);
     }
 
     public final boolean toggleProfileStatus(final Player player) {
@@ -130,24 +160,29 @@ public class PlayerDataHandler {
         addDeath(victim.getUniqueId());
         victim.setHealth(victim.getMaxHealth());
 
-        final Object o = handler.getConfig("kill.coins", false);
-        int coins = 20;
+        final Object o = handler.getConfig("kill.points", false);
+        int points = 20;
         if (o instanceof Integer)
-            coins = (Integer) o;
+            points = (Integer) o;
 
         if (attacker != null) {
             addKill(attacker.getUniqueId());
+            addSouls(attacker.getUniqueId(), 1);
             addKillStreak(attacker.getUniqueId());
-            addCoins(attacker.getUniqueId(), coins);
+            addPoints(attacker.getUniqueId(), points);
             attacker.setHealth(attacker.getMaxHealth());
-            getPlayerReady(attacker);
+            updatePlayerRank(attacker);
+
+            if (getKillStreak(attacker.getUniqueId()) % 5 == 0) {
+                broadcast(handler.checkForPrefixAndReplace("%prefix% §e" + attacker.getDisplayName() + " §ahas a kill streak of §6" + getKillStreak(attacker.getUniqueId()) + "§a!"));
+            }
         }
-        sendSuitableDeathMessage(victim, attacker, coins, cause);
+        sendSuitableDeathMessage(victim, attacker, points, cause);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                if (victim.isOnline()) getPlayerReady(victim);
+                if (victim.isOnline()) getPlayerReady(victim, false);
             }
         }, 50);
     }
@@ -156,48 +191,114 @@ public class PlayerDataHandler {
         handler.writeData("players." + uuid + ".kills", getKills(uuid)+1);
     }
 
+    public void addSouls(final UUID uuid, final int souls) {
+        handler.writeData("players." + uuid + ".souls", getSouls(uuid)+souls);
+    }
+
     public void addKillStreak(final UUID uuid) {
-        killStreaks.put(uuid, getKillStreaks(uuid)+1);
+        int i = getKillStreak(uuid)+1;
+
+        killStreaks.put(uuid, i);
+
+        final Object o = handler.getData("players." + uuid + ".highestKillStreak");
+        if (o instanceof Integer) {
+            if (i > (Integer) o) handler.writeData("players." + uuid + ".highestKillStreak", i);
+            return;
+        }
+        handler.writeData("players." + uuid + ".highestKillStreak", i);
     }
 
     public void addDeath(final UUID uuid) {
         handler.writeData("players." + uuid + ".deaths", getDeaths(uuid)+1);
     }
 
-    public void addCoins(final UUID uuid, final int coins) {
-        handler.writeData("players." + uuid + ".coins", getCoins(uuid)+coins);
+    public void addPoints(final UUID uuid, final int points) {
+        handler.writeData("players." + uuid + ".points", getPoints(uuid)+points);
     }
 
-    public void removeCoins(final UUID uuid, final int coins) {
-        handler.writeData("players." + uuid + ".coins", getCoins(uuid)-coins);
+    public void removeSouls(final UUID uuid, final int souls) {
+        handler.writeData("players." + uuid + ".souls", getSouls(uuid)-souls);
     }
 
     public final int getKills(final UUID uuid) {
-        int i = 0;
         final Object o = handler.getData("players." + uuid + ".kills");
-        if (o instanceof Integer)
-            i = (Integer) o;
-        return i;
+        return o instanceof Integer ? (Integer) o : 0;
     }
 
-    public final int getKillStreaks(final UUID uuid) {
+    public final int getSouls(final UUID uuid) {
+        final Object o = handler.getData("players." + uuid + ".souls");
+        return o instanceof Integer ? (Integer) o : 0;
+    }
+
+    public final int getHighestKillStreak(final UUID uuid) {
+        final Object o = handler.getData("players." + uuid + ".highestKillStreak");
+        return o instanceof Integer ? (Integer) o : 0;
+    }
+
+    public final int getKillStreak(final UUID uuid) {
         return killStreaks.getOrDefault(uuid, 0);
     }
 
     public final int getDeaths(final UUID uuid) {
-        int i = 0;
         final Object o = handler.getData("players." + uuid + ".deaths");
-        if (o instanceof Integer)
-            i = (Integer) o;
-        return i;
+        return o instanceof Integer ? (Integer) o : 0;
     }
 
-    public final int getCoins(final UUID uuid) {
-        int i = 0;
-        final Object o = handler.getData("players." + uuid + ".coins");
-        if (o instanceof Integer)
-            i = (Integer) o;
-        return i;
+    public final int getPoints(final UUID uuid) {
+        final Object o = handler.getData("players." + uuid + ".points");
+        return o instanceof Integer ? (Integer) o : 500;
+    }
+
+    public final String getRank(final UUID uuid) {
+
+        Object o = handler.getData("players." + uuid + ".scramble");
+
+        if (o != null) return "§e#";
+
+        o = handler.getData("players." + uuid + ".points");
+
+        if (o instanceof Integer) {
+            final int i = (Integer) o;
+
+            if (i >= 17500) return "&5LEGENDARY";
+
+            if (i >= 17000) return "§5Amethyst V";
+            if (i >= 16500) return "§5Amethyst IV";
+            if (i >= 16000) return "§5Amethyst III";
+            if (i >= 15500) return "§5Amethyst II";
+            if (i >= 15000) return "§5Amethyst I";
+
+            if (i >= 14500) return "§4Ultimate V";
+            if (i >= 14000) return "§4Ultimate IV";
+            if (i >= 13500) return "§4Ultimate III";
+            if (i >= 13000) return "§4Ultimate II";
+            if (i >= 12500) return "§4Ultimate I";
+
+            if (i >= 12000) return "§3Special V";
+            if (i >= 11500) return "§3Special IV";
+            if (i >= 11000) return "§3Special III";
+            if (i >= 10500) return "§3Special II";
+            if (i >= 10000) return "§3Special I";
+
+            if (i >= 9500) return "§8Iron V";
+            if (i >= 9000) return "§8Iron IV";
+            if (i >= 8500) return "§8Iron III";
+            if (i >= 8000) return "§8Iron II";
+            if (i >= 7500) return "§8Iron I";
+
+            if (i >= 7000) return "§8Silver V";
+            if (i >= 6500) return "§8Silver IV";
+            if (i >= 6000) return "§8Silver III";
+            if (i >= 5500) return "§8Silver II";
+            if (i >= 5000) return "§8Silver I";
+
+            if (i >= 4500) return "§6Bronze V";
+            if (i >= 3500) return "§6Bronze IV";
+            if (i >= 2500) return "§6Bronze III";
+            if (i >= 2000) return "§6Bronze II";
+            if (i >= 1500) return "§6Bronze I";
+        }
+        return "§eUNRANKED";
     }
 
     public void updateScoreboard(final Player player) {
@@ -216,12 +317,13 @@ public class PlayerDataHandler {
 
     public String replaceStringWithData(final UUID uuid, final String input) {
         return input.replace("%kills%", String.valueOf(getKills(uuid)))
-                .replace("%coins%", String.valueOf(getCoins(uuid)))
+                .replace("%points%", String.valueOf(getPoints(uuid)))
+                .replace("%souls%", String.valueOf(getSouls(uuid)))
                 .replace("%deaths%", String.valueOf(getDeaths(uuid)))
-                .replace("%killStreaks%", String.valueOf(getKillStreaks(uuid)));
+                .replace("%killStreak%", String.valueOf(getKillStreak(uuid)));
     }
 
-    public ItemStack createItemStack(final Material material, final String name, final List<String> lore, int amount, boolean unbreakable) {
+    public ItemStack createItemStack(final Material material, final String name, final List<String> lore, final int amount, final boolean unbreakable) {
         ItemStack item = new ItemStack(material, amount);
         final ItemMeta meta = item.getItemMeta();
 
@@ -246,8 +348,119 @@ public class PlayerDataHandler {
         return item;
     }
 
+    private void updatePlayerRank(final Player player) {
+        player.setDisplayName(getRank(player.getUniqueId()) + " " + player.getDisplayName());
+    }
 
     // Internal Functions
+
+    private void setKit(final Player player) {
+        final PlayerInventory inventory = player.getInventory();
+
+        int sword, rod, bow, flint;
+
+        if (player.hasPermission("pvp.emerald")) {
+            inventory.setHelmet(enchant(createItemStack(Material.DIAMOND_HELMET, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setLeggings(enchant(createItemStack(Material.DIAMOND_LEGGINGS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+
+            Object o = handler.getData("players." + player.getUniqueId() + ".savedInventory.sword");
+            sword = o instanceof Integer ? (Integer) o : 0;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.rod");
+            rod = o instanceof Integer ? (Integer) o : 1;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.bow");
+            bow = o instanceof Integer ? (Integer) o : 2;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.flint");
+            flint = o instanceof Integer ? (Integer) o : 3;
+
+            inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
+            inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
+            inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
+            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            return;
+        }
+
+        if (player.hasPermission("pvp.diamond")) {
+            inventory.setHelmet(enchant(createItemStack(Material.IRON_HELMET, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setLeggings(enchant(createItemStack(Material.DIAMOND_LEGGINGS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+
+            Object o = handler.getData("players." + player.getUniqueId() + ".savedInventory.sword");
+            sword = o instanceof Integer ? (Integer) o : 0;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.rod");
+            rod = o instanceof Integer ? (Integer) o : 1;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.bow");
+            bow = o instanceof Integer ? (Integer) o : 2;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.flint");
+            flint = o instanceof Integer ? (Integer) o : 3;
+
+            inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
+            inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
+            inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
+            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            return;
+        }
+
+        if (player.hasPermission("pvp.gold")) {
+            inventory.setHelmet(enchant(createItemStack(Material.DIAMOND_HELMET, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+            inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+            inventory.setLeggings(enchant(createItemStack(Material.IRON_LEGGINGS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+
+            Object o = handler.getData("players." + player.getUniqueId() + ".savedInventory.sword");
+            sword = o instanceof Integer ? (Integer) o : 0;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.rod");
+            rod = o instanceof Integer ? (Integer) o : 1;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.bow");
+            bow = o instanceof Integer ? (Integer) o : 2;
+
+            o = handler.getData("players." + player.getUniqueId() + ".savedInventory.flint");
+            flint = o instanceof Integer ? (Integer) o : 3;
+
+            inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
+            inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
+            inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
+            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            return;
+        }
+
+        inventory.setHelmet(enchant(createItemStack(Material.IRON_HELMET, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+        inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+        inventory.setLeggings(enchant(createItemStack(Material.IRON_LEGGINGS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+        inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+
+        Object o = handler.getData("players." + player.getUniqueId() + ".savedInventory.sword");
+        sword = o instanceof Integer ? (Integer) o : 0;
+
+        o = handler.getData("players." + player.getUniqueId() + ".savedInventory.rod");
+        rod = o instanceof Integer ? (Integer) o : 1;
+
+        o = handler.getData("players." + player.getUniqueId() + ".savedInventory.bow");
+        bow = o instanceof Integer ? (Integer) o : 2;
+
+        o = handler.getData("players." + player.getUniqueId() + ".savedInventory.flint");
+        flint = o instanceof Integer ? (Integer) o : 3;
+
+        inventory.setItem(sword, enchant(createItemStack(Material.STONE_SWORD, "§7Stone Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
+        inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
+        inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 1));
+        inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+    }
+
+    private ItemStack enchant(final ItemStack item, final Enchantment enchantment, final int level) {
+        item.addEnchantment(enchantment, level);
+        return item;
+    }
 
     private void quickLeave(final Player player) {
         handler.packetReader.uninject(player);
@@ -256,12 +469,9 @@ public class PlayerDataHandler {
             scoreboards.get(player.getUniqueId()).delete();
             scoreboards.remove(player.getUniqueId());
         }
-
-        final Object o = handler.getData("locations.lobby");
-        if (o instanceof Location) player.teleport((Location) o);
     }
 
-    private void sendSuitableDeathMessage(final Player victim, final Player attacker, final int coins, final EntityDamageEvent.DamageCause damageCause) {
+    private void sendSuitableDeathMessage(final Player victim, final Player attacker, final int points, final EntityDamageEvent.DamageCause damageCause) {
         Object o;
         List<?> list;
         final Random random = new Random();
@@ -331,7 +541,7 @@ public class PlayerDataHandler {
             o = handler.getConfig("kill.messages.chat.victim.message", true);
             if (o != null)
                 victim.sendMessage(o.toString()
-                        .replace("%coins%", String.valueOf(coins))
+                        .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
                         .replace("%victim%", victim.getDisplayName()));
         }
@@ -340,7 +550,7 @@ public class PlayerDataHandler {
             o = handler.getConfig("kill.messages.chat.attacker.message", true);
             if (o != null)
                 attacker.sendMessage(o.toString()
-                        .replace("%coins%", String.valueOf(coins))
+                        .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
                         .replace("%victim%", victim.getDisplayName()));
         }
@@ -349,7 +559,7 @@ public class PlayerDataHandler {
             o = handler.getConfig("kill.messages.action-bar.victim.message", true);
             if (o != null)
                 sendActionbar(victim, o.toString()
-                        .replace("%coins%", String.valueOf(coins))
+                        .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
                         .replace("%victim%", victim.getDisplayName()));
         }
@@ -358,7 +568,7 @@ public class PlayerDataHandler {
             o = handler.getConfig("kill.messages.action-bar.attacker.message", true);
             if (o != null)
                 sendActionbar(attacker, o.toString()
-                        .replace("%coins%", String.valueOf(coins))
+                        .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
                         .replace("%victim%", victim.getDisplayName()));
         }

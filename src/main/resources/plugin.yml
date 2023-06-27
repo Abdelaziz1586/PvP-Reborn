@@ -2,5 +2,49 @@ name: PvP-Reborn
 version: '${project.version}'
 main: me.pebbleprojects.pvpreborn.PvP
 commands:
-  PvP:
-    description: Main command for PvP
+  Help:
+    description: Help command for PvP
+  Profile:
+    description: View your own or others' profiles
+  Reload:
+    description: Reloads PvP
+  RemoveNPC:
+    description: Removes an NPC
+  SetGameLocation:
+    description: Set game's location
+  SetShopNPC:
+    description: Set ShopNPC
+  ToggleProfile:
+    description: Toggles your profile on and off so that other players can or can't view it
+  Save:
+    description: Saves your items' slots
+  AddPoints:
+    description: Adds points to specific player
+  AddSouls:
+    description: Adds souls to specific player
+  Spectate:
+    description: Spectate other players
+    aliases:
+      - spec
+  SetY:
+    description: Set spawn's height
+  Build:
+    description: Enter build mode
+    aliases:
+      - b
+  TopKills:
+    description: Get 10 top kills in the server
+  TopPoints:
+    description: Get 10 top points in the server
+  Stats:
+    description: Get your status
+  Scramble:
+    description: Hides your rank
+    aliases:
+      - sc
+  Ranks:
+    description: Show all PvP ranks
+    aliases: rank
+softdepend:
+  - LuckPerms
+load: POSTWORLD

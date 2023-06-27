@@ -14,11 +14,11 @@ public class AsyncPlayerChat implements Listener {
     }
 
     @EventHandler
-    public void onAsyncPlayerChat(final AsyncPlayerChatEvent e) {
-        e.setCancelled(true);
-        handler.runTask(() -> {
+    public void onAsyncPlayerChat(final AsyncPlayerChatEvent event) {
+        event.setCancelled(true);
+        new Thread(() -> {
             if (Boolean.parseBoolean(handler.getConfig("chat-format.enabled", false).toString())) {
-                handler.playerDataHandler.broadcast(handler.getConfig("chat-format.format", true).toString().replace("%player%", e.getPlayer().getDisplayName()).replace("%message%", e.getMessage()));
+                handler.playerDataHandler.broadcast(handler.getConfig("chat-format.format", true).toString().replace("%player%", event.getPlayer().getDisplayName()).replace("%message%", event.getMessage()));
             }
         });
     }

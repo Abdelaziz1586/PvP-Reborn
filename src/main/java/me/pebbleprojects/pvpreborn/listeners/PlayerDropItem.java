@@ -21,12 +21,12 @@ public class PlayerDropItem implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDropItem(final PlayerDropItemEvent e) {
-        final Player player = e.getPlayer();
+    public void onPlayerDropItem(final PlayerDropItemEvent event) {
+        final Player player = event.getPlayer();
         if (handler.playerDataHandler.players.contains(player)) {
-            e.setCancelled(true);
+            event.setCancelled(true);
             handler.runTask(() -> {
-                final ItemStack droppedItem = e.getItemDrop().getItemStack();
+                final ItemStack droppedItem = event.getItemDrop().getItemStack();
                 if (sureDestroy.containsKey(player) && sureDestroy.get(player).equals(droppedItem)) {
                     handler.runTaskLater(() -> player.getInventory().remove(droppedItem), 1);
                     sureDestroy.remove(player);

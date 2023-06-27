@@ -4,9 +4,6 @@ import me.pebbleprojects.pvpreborn.handlers.Handler;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public final class PvP extends JavaPlugin {
 
     private Handler handler;
@@ -16,15 +13,12 @@ public final class PvP extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
 
-        new Thread(() -> new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                final ConsoleCommandSender console = getServer().getConsoleSender();
-                console.sendMessage("§eLoading §6PvP§e...");
-                handler = new Handler();
-                console.sendMessage("§aLoaded §6PvP");
-            }
-        }, 1000)).start();
+        new Thread(() -> {
+            final ConsoleCommandSender console = getServer().getConsoleSender();
+            console.sendMessage("§eLoading §6PvP§e...");
+            handler = new Handler();
+            console.sendMessage("§aLoaded §6PvP");
+        }).start();
     }
 
     @Override

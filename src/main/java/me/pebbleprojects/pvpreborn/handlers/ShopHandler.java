@@ -101,7 +101,7 @@ public class ShopHandler {
             final String typeNameString = itemStack.getType().name();
             if (o instanceof Integer) {
                 final int price = (Integer) o;
-                if (handler.playerDataHandler.getCoins(player.getUniqueId()) >= price) {
+                if (handler.playerDataHandler.getSouls(player.getUniqueId()) >= price) {
                     if (!hasFreeSpace(player)) {
                         player.sendMessage(handler.getConfig("shop.fullInventory", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
                         return;
@@ -114,7 +114,7 @@ public class ShopHandler {
                     try {
                         itemStack.setAmount(Integer.parseInt(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".amount", false).toString()));
                     } catch (final NumberFormatException ignored) {}
-                    handler.playerDataHandler.removeCoins(player.getUniqueId(), price);
+                    handler.playerDataHandler.removeSouls(player.getUniqueId(), price);
                     player.sendMessage(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".purchaseMessage", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
                     handler.playerDataHandler.updateScoreboard(player);
                     if (typeNameString.endsWith("_HELMET")) {
@@ -140,7 +140,7 @@ public class ShopHandler {
                     inventory.addItem(itemStack);
                     return;
                 }
-                player.sendMessage(handler.getConfig("shop.noEnoughCoins", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
+                player.sendMessage(handler.getConfig("shop.noEnoughSouls", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
             }
         }
     }
