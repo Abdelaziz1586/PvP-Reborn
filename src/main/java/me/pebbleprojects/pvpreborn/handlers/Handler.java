@@ -61,7 +61,6 @@ public class Handler {
         main.getCommand("SetY").setExecutor(new SetY(this));
         main.getCommand("Build").setExecutor(new Build(this));
         main.getCommand("Stats").setExecutor(new Stats(this));
-        main.getCommand("Reload").setExecutor(new Reload(this));
         main.getCommand("Profile").setExecutor(new Profile(this));
         main.getCommand("Scramble").setExecutor(new Scramble(this));
         main.getCommand("AddSouls").setExecutor(new AddSouls(this));
@@ -86,6 +85,7 @@ public class Handler {
         pm.registerEvents(new PlayerJoin(playerDataHandler), main);
         pm.registerEvents(new PlayerQuit(playerDataHandler), main);
         pm.registerEvents(new BlockBreak(playerDataHandler), main);
+        pm.registerEvents(new CommandExecution(this), main);
         pm.registerEvents(new EntityDamage(playerDataHandler), main);
     }
 

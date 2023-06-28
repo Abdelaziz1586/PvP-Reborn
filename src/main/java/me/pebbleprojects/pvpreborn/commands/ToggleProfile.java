@@ -21,11 +21,11 @@ public class ToggleProfile implements CommandExecutor {
                 final Player player = (Player) sender;
 
                 if (handler.playerDataHandler.toggleProfileStatus(player)) {
-                    player.sendMessage("§aToggled ON profile");
+                    player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aToggled ON profile"));
                     return;
                 }
 
-                player.sendMessage("§cToggled OFF profile");
+                player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cToggled OFF profile"));
             }
         }).start();
 

@@ -47,7 +47,7 @@ public class Profile implements CommandExecutor {
         player.sendMessage("§e" + query + "'s §7stats");
         player.sendMessage("§eKills §8» " + o);
         player.sendMessage("§eDeaths §8» " + handler.playerDataHandler.getDeaths(uuid));
-        player.sendMessage("§eRank §8» " + handler.playerDataHandler.getRank(uuid));
+        player.sendMessage("§eRank §8» " + player.getDisplayName());
         player.sendMessage("§e§l-----------------------------------");
     }
 }

@@ -15,7 +15,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.*;
@@ -29,7 +28,6 @@ public class PlayerDataHandler {
     public final HashMap<UUID, Player> lastDamage;
     private final HashMap<UUID, Integer> killStreaks;
     private final HashMap<UUID, FastBoard> scoreboards;
-    public final HashMap<UUID, ItemStack> playersHeads;
 
     public PlayerDataHandler(final Handler handler) {
         this.handler = handler;
@@ -39,7 +37,6 @@ public class PlayerDataHandler {
         scoreboards = new HashMap<>();
         killStreaks = new HashMap<>();
         buildMode = new ArrayList<>();
-        playersHeads = new HashMap<>();
 
         final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
 
@@ -98,17 +95,6 @@ public class PlayerDataHandler {
         player.setFoodLevel(20);
         handler.npcHandler.loadNPCs(player);
         handler.packetReader.inject(player);
-
-
-        final ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        final SkullMeta headMeta = (SkullMeta) head.getItemMeta();
-
-        headMeta.setOwner(player.getName());
-        headMeta.setDisplayName(player.getDisplayName());
-
-        head.setItemMeta(headMeta);
-
-        playersHeads.put(player.getUniqueId(), head);
     }
 
     public void leave(final Player player) {

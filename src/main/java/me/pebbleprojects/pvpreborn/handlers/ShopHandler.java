@@ -76,13 +76,15 @@ public class ShopHandler {
         if (inventory[menu] != null) {
             final Inventory inv = inventory[menu];
 
-            final ItemStack head = handler.playerDataHandler.playersHeads.getOrDefault(player.getUniqueId(), new ItemStack(Material.SKULL_ITEM, 1, (short) 3));
+            final ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+            final SkullMeta headMeta = (SkullMeta) head.getItemMeta();
 
-            final ItemMeta im = head.getItemMeta();
+            headMeta.setOwner(player.getName());
+            headMeta.setDisplayName(player.getDisplayName());
 
-            im.setLore(Arrays.asList("§7Kills §8» §e" + handler.playerDataHandler.getKills(player.getUniqueId()), "§7Deaths §8» §e" + handler.playerDataHandler.getDeaths(player.getUniqueId()), "§7Highest KillStreak §8» §e" + handler.playerDataHandler.getHighestKillStreak(player.getUniqueId()), "§7Points §8» §e" + handler.playerDataHandler.getPoints(player.getUniqueId()), "§7Souls §8» §e" + handler.playerDataHandler.getSouls(player.getUniqueId())));
+            headMeta.setLore(Arrays.asList("§7Kills §8» §e" + handler.playerDataHandler.getKills(player.getUniqueId()), "§7Deaths §8» §e" + handler.playerDataHandler.getDeaths(player.getUniqueId()), "§7Highest KillStreak §8» §e" + handler.playerDataHandler.getHighestKillStreak(player.getUniqueId()), "§7Points §8» §e" + handler.playerDataHandler.getPoints(player.getUniqueId()), "§7Souls §8» §e" + handler.playerDataHandler.getSouls(player.getUniqueId())));
 
-            head.setItemMeta(im);
+            head.setItemMeta(headMeta);
 
             inv.setItem(4, head);
             player.openInventory(inv);

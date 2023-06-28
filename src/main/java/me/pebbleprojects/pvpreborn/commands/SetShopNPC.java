@@ -23,14 +23,14 @@ public class SetShopNPC implements CommandExecutor {
                 final Player player = (Player) sender;
 
                 if (player.hasPermission("pvp.admin")) {
-                    player.sendMessage("§eCreating Shop NPC...");
+                    player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §eCreating Shop NPC..."));
                     final NPC npc = handler.npcHandler.createNPC(handler.getConfig("shop.npc.name", false).toString(), player.getLocation(), 0);
                     npc.setSkin(handler.getConfig("shop.npc.skinName", false).toString());
                     npc.save();
                     handler.playerDataHandler.players.forEach(npc::sendShowPacket);
-                    player.sendMessage("§aCreated Shop NPC at your location.");
+                    player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aCreated Shop NPC at your location."));
                     if (!handler.playerDataHandler.players.contains(player)) {
-                        player.sendMessage("§eNOTE: as you're not in the game, you won't be able to see the NPC. Join to see the NPC you have created!");
+                        player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §eNOTE: as you're not in the game, you won't be able to see the NPC. Join to see the NPC you have created!"));
                     }
                     return;
                 }

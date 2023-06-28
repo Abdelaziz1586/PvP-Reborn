@@ -28,14 +28,14 @@ public class RemoveNPC implements CommandExecutor {
                             if (id >= 1) {
                                 if (handler.getData("NPCs." + id + ".name") != null) {
                                     handler.writeData("NPCs." + id, null);
-                                    player.sendMessage("§aSuccessfully removed NPC with ID of §e" + id);
+                                    player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aSuccessfully removed NPC with ID of §e" + id));
                                     handler.npcHandler.deleteNPC(id);
                                     return;
                                 }
                             }
-                            player.sendMessage("§cThere is no NPC with such an ID!");
+                            player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cThere is no NPC with such an ID!"));
                         } catch (final NumberFormatException ignored) {
-                            player.sendMessage("§cID of NPCs start from 1 to above.");
+                            player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cID of NPCs start from 1 to above."));
                         }
                         return;
                     }

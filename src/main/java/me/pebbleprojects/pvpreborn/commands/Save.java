@@ -51,6 +51,8 @@ public class Save implements CommandExecutor {
                         handler.writeData("players." + player.getUniqueId() + ".savedInventory.flint", i);
                     }
                 }
+
+                player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aSaved your inventory slots"));
             }
         }).start();
 

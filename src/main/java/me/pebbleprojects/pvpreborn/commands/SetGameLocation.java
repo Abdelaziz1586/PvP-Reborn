@@ -23,7 +23,7 @@ public class SetGameLocation implements CommandExecutor {
 
                 if (player.hasPermission("pvp.admin")) {
                     handler.writeData("game.location", player.getLocation());
-                    player.sendMessage("§aSet game location.");
+                    player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aSet game location."));
                     return;
                 }
                 player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cYou don't have permission to use this command"));
