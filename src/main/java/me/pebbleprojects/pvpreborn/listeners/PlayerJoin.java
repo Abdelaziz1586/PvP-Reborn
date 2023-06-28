@@ -1,8 +1,6 @@
 package me.pebbleprojects.pvpreborn.listeners;
 
 import me.pebbleprojects.pvpreborn.handlers.PlayerDataHandler;
-import net.luckperms.api.model.group.Group;
-import net.luckperms.api.model.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
