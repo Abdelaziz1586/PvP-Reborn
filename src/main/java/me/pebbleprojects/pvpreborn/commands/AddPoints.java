@@ -37,7 +37,7 @@ public class AddPoints implements CommandExecutor {
                             player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cPlease enter a valid number!"));
                         }
                     }
-                    player.performCommand("help");
+                    handler.runTask(() -> player.performCommand("help"));
                     return;
                 }
                 player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cYou don't have permission to use this command"));

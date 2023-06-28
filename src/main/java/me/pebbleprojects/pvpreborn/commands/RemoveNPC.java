@@ -39,7 +39,7 @@ public class RemoveNPC implements CommandExecutor {
                         }
                         return;
                     }
-                    player.performCommand("help");
+                    handler.runTask(() -> player.performCommand("help"));
                     return;
                 }
                 player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cYou don't have permission to use this command"));

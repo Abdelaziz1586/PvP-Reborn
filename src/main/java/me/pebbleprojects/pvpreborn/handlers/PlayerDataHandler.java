@@ -2,6 +2,8 @@ package me.pebbleprojects.pvpreborn.handlers;
 
 import fr.mrmicky.fastboard.FastBoard;
 import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.user.User;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
 import org.bukkit.Material;
@@ -13,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.*;
@@ -26,6 +29,7 @@ public class PlayerDataHandler {
     public final HashMap<UUID, Player> lastDamage;
     private final HashMap<UUID, Integer> killStreaks;
     private final HashMap<UUID, FastBoard> scoreboards;
+    public final HashMap<UUID, ItemStack> playersHeads;
 
     public PlayerDataHandler(final Handler handler) {
         this.handler = handler;
@@ -35,6 +39,7 @@ public class PlayerDataHandler {
         scoreboards = new HashMap<>();
         killStreaks = new HashMap<>();
         buildMode = new ArrayList<>();
+        playersHeads = new HashMap<>();
 
         final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
 
@@ -93,6 +98,17 @@ public class PlayerDataHandler {
         player.setFoodLevel(20);
         handler.npcHandler.loadNPCs(player);
         handler.packetReader.inject(player);
+
+
+        final ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        final SkullMeta headMeta = (SkullMeta) head.getItemMeta();
+
+        headMeta.setOwner(player.getName());
+        headMeta.setDisplayName(player.getDisplayName());
+
+        head.setItemMeta(headMeta);
+
+        playersHeads.put(player.getUniqueId(), head);
     }
 
     public void leave(final Player player) {
@@ -142,7 +158,7 @@ public class PlayerDataHandler {
 
         player.setFireTicks(0);
         updateScoreboard(player);
-        updatePlayerRank(player);
+        updatePlayerDisplayName(player);
     }
 
     public final boolean toggleProfileStatus(final Player player) {
@@ -171,7 +187,7 @@ public class PlayerDataHandler {
             addKillStreak(attacker.getUniqueId());
             addPoints(attacker.getUniqueId(), points);
             attacker.setHealth(attacker.getMaxHealth());
-            updatePlayerRank(attacker);
+            updatePlayerDisplayName(attacker);
 
             if (getKillStreak(attacker.getUniqueId()) % 5 == 0) {
                 broadcast(handler.checkForPrefixAndReplace("%prefix% §e" + attacker.getDisplayName() + " §ahas a kill streak of §6" + getKillStreak(attacker.getUniqueId()) + "§a!"));
@@ -260,7 +276,7 @@ public class PlayerDataHandler {
         if (o instanceof Integer) {
             final int i = (Integer) o;
 
-            if (i >= 17500) return "&5LEGENDARY";
+            if (i >= 17500) return "§5§lLEGENDARY";
 
             if (i >= 17000) return "§5Amethyst V";
             if (i >= 16500) return "§5Amethyst IV";
@@ -348,8 +364,17 @@ public class PlayerDataHandler {
         return item;
     }
 
-    private void updatePlayerRank(final Player player) {
-        player.setDisplayName(getRank(player.getUniqueId()) + " " + player.getDisplayName());
+    public void updatePlayerDisplayName(final Player player) {
+        if (api != null) {
+
+            final User user = api.getUserManager().getUser(player.getUniqueId());
+            if (user != null) {
+                final Group group = api.getGroupManager().getGroup(user.getPrimaryGroup());
+                final String prefix = group != null ? group.getCachedData().getMetaData().getPrefix() : null;
+
+                player.setDisplayName(getRank(player.getUniqueId()) + " " + (prefix != null ? prefix + " " + player.getName() : player.getName()));
+            }
+        }
     }
 
     // Internal Functions
@@ -360,10 +385,10 @@ public class PlayerDataHandler {
         int sword, rod, bow, flint;
 
         if (player.hasPermission("pvp.emerald")) {
-            inventory.setHelmet(enchant(createItemStack(Material.DIAMOND_HELMET, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
-            inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
-            inventory.setLeggings(enchant(createItemStack(Material.DIAMOND_LEGGINGS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
-            inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setHelmet(enchant(createItemStack(Material.DIAMOND_HELMET, "§7Helmet", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setChestplate(enchant(createItemStack(Material.IRON_CHESTPLATE, "§7ChestPlate", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setLeggings(enchant(createItemStack(Material.DIAMOND_LEGGINGS, "§7Leggings", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
+            inventory.setBoots(enchant(createItemStack(Material.IRON_BOOTS, "§7Boots", null, 1, true), Enchantment.PROTECTION_ENVIRONMENTAL, 1));
 
             Object o = handler.getData("players." + player.getUniqueId() + ".savedInventory.sword");
             sword = o instanceof Integer ? (Integer) o : 0;
@@ -380,7 +405,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
             return;
         }
 
@@ -405,7 +430,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
             return;
         }
 
@@ -430,7 +455,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
             return;
         }
 
@@ -454,7 +479,7 @@ public class PlayerDataHandler {
         inventory.setItem(sword, enchant(createItemStack(Material.STONE_SWORD, "§7Stone Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
         inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
         inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 1));
-        inventory.setItem(flint, createItemStack(Material.BOW, "§7Flint And Steel", null, 1, true));
+        inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
     }
 
     private ItemStack enchant(final ItemStack item, final Enchantment enchantment, final int level) {
@@ -469,6 +494,8 @@ public class PlayerDataHandler {
             scoreboards.get(player.getUniqueId()).delete();
             scoreboards.remove(player.getUniqueId());
         }
+
+        player.kickPlayer("Restarting...");
     }
 
     private void sendSuitableDeathMessage(final Player victim, final Player attacker, final int points, final EntityDamageEvent.DamageCause damageCause) {

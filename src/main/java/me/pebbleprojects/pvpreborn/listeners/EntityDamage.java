@@ -44,7 +44,7 @@ public class EntityDamage implements Listener {
                     entity = ((EntityDamageByEntityEvent) event).getDamager();
                     if (entity instanceof Player) {
                         attacker = (Player) entity;
-                        if (!handler.players.contains(attacker) && handler.buildMode.contains(attacker.getUniqueId())) {
+                        if (!handler.players.contains(attacker) || handler.buildMode.contains(attacker.getUniqueId())) {
                             event.setCancelled(true);
                             return;
                         }
@@ -57,6 +57,4 @@ public class EntityDamage implements Listener {
         }
     }
 
-
-    // Internal Functionsx
 }

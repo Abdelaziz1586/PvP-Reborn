@@ -22,11 +22,11 @@ public class Spectate implements CommandExecutor {
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
 
-                Object o = handler.getData("game.yHeight");
+                final Object o = handler.getData("game.yHeight");
 
-                if (o instanceof Integer) {
+                if (o instanceof Double) {
                     if (player.getGameMode() != GameMode.SPECTATOR) {
-                        if (player.getLocation().getY() >= Integer.parseInt(o.toString())) {
+                        if (player.getLocation().getY() >= Double.parseDouble(o.toString())) {
                             player.setGameMode(GameMode.SPECTATOR);
 
                             if (args.length > 0) {

@@ -1,5 +1,6 @@
 package me.pebbleprojects.pvpreborn.handlers;
 
+import me.pebbleprojects.pvpreborn.PvP;
 import me.pebbleprojects.pvpreborn.commands.*;
 import me.pebbleprojects.pvpreborn.listeners.*;
 import me.pebbleprojects.pvpreborn.npc.NPCHandler;
@@ -19,7 +20,7 @@ import java.util.Set;
 
 public class Handler {
 
-    public final me.pebbleprojects.pvpreborn.PvP main;
+    public final PvP main;
     private final File dataFile;
     public final NPCHandler npcHandler;
     public final ShopHandler shopHandler;
@@ -28,7 +29,7 @@ public class Handler {
     public final PlayerDataHandler playerDataHandler;
 
     public Handler() {
-        main = me.pebbleprojects.pvpreborn.PvP.INSTANCE;
+        main = PvP.INSTANCE;
 
         main.getConfig().options().copyDefaults(true);
         main.saveDefaultConfig();

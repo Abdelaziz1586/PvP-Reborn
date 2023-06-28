@@ -21,20 +21,12 @@ public class PlayerJoin implements Listener {
         event.setJoinMessage("");
 
         new Thread(() -> {
-            handler.join(event.getPlayer());
 
             final Player player = event.getPlayer();
 
-            if (handler.api == null) return;
+            handler.updatePlayerDisplayName(player);
 
-            final User user = handler.api.getUserManager().getUser(player.getUniqueId());
-            if (user != null) {
-
-                final Group group = handler.api.getGroupManager().getGroup(user.getPrimaryGroup());
-                final String prefix = group != null ? group.getCachedData().getMetaData().getPrefix() : null;
-
-                player.setDisplayName(prefix + " " + player.getName());
-            }
+            handler.join(event.getPlayer());
         }).start();
     }
 }

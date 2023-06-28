@@ -8,10 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class TopKills implements CommandExecutor {
 
@@ -24,19 +21,24 @@ public class TopKills implements CommandExecutor {
     @Override
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
         new Thread(() -> {
-            final List<Object> list = new java.util.ArrayList<>(Collections.singletonList(handler.getDataSection("players")));
+            final List<?> list = new ArrayList<>(handler.getDataSection("players"));
 
-            list.sort(Comparator.comparingInt(uuid -> handler.playerDataHandler.getKills((UUID) uuid)));
+            list.sort(Comparator.comparingInt(uuid -> handler.playerDataHandler.getKills(UUID.fromString(uuid.toString()))));
 
-            sender.sendMessage("&e&l--------------------------§6§lTop Kills§e§l--------------------------");
+            sender.sendMessage("§e§l--------------------------§6§lTop Kills§e§l--------------------------");
 
             UUID uuid;
             User user;
             String name;
-            for (int i = 9; i >= Math.min(list.size(), 9); i--) {
-                uuid = (UUID) list.get(i);
 
-                name = Bukkit.getOfflinePlayer((UUID) list.get(i)).getName();
+            reverseList(list);
+
+            int i = 1;
+            for (final Object o : list) {
+
+                uuid = UUID.fromString(o.toString());
+
+                name = Bukkit.getOfflinePlayer(uuid).getName();
 
                 if (handler.playerDataHandler.api != null) {
                     user = handler.playerDataHandler.api.getUserManager().getUser(uuid);
@@ -47,12 +49,24 @@ public class TopKills implements CommandExecutor {
                         name = prefix + " " + name;
                     }
                 }
-                sender.sendMessage("§7" + (10-i) + " &8» §e" + name);
+                sender.sendMessage("§7" + i + " §8» §e" + name);
+                i++;
+                if (i >= 10) break;
             }
 
-            sender.sendMessage("&e&l--------------------------§6§lTop Kills§e§l--------------------------");
+            sender.sendMessage("§e§l--------------------------§6§lTop Kills§e§l--------------------------");
 
         }).start();
         return false;
+    }
+
+    private <T> void reverseList(final List<T> list) {
+        if (list.size() <= 1) return;
+
+        T value = list.remove(0);
+
+        reverseList(list);
+
+        list.add(value);
     }
 }

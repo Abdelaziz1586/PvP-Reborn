@@ -43,11 +43,11 @@ public class Profile implements CommandExecutor {
             return;
         }
 
-        player.sendMessage("&e&l-----------------------------------------------------");
+        player.sendMessage("§e§l-----------------------------------");
         player.sendMessage("§e" + query + "'s §7stats");
-        player.sendMessage("§eKills &8» " + o);
-        player.sendMessage("§eDeaths &8» " + handler.playerDataHandler.getDeaths(uuid));
-        player.sendMessage("§eRank &8» " + handler.playerDataHandler.getRank(uuid));
-        player.sendMessage("&e&l-----------------------------------------------------");
+        player.sendMessage("§eKills §8» " + o);
+        player.sendMessage("§eDeaths §8» " + handler.playerDataHandler.getDeaths(uuid));
+        player.sendMessage("§eRank §8» " + handler.playerDataHandler.getRank(uuid));
+        player.sendMessage("§e§l-----------------------------------");
     }
 }

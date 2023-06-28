@@ -20,7 +20,7 @@ otherMessages:
 
 chat-format:
   enabled: true
-  format: "%pvpRank% &7%player% &7%message%"
+  format: "&7%player% &7%message%"
 
 kill: # When attacker is set, public broadcasts aren't concluded.
   points: 20

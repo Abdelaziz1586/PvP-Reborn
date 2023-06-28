@@ -2,7 +2,6 @@ package me.pebbleprojects.pvpreborn.handlers;
 
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -21,13 +20,13 @@ public class ShopHandler {
 
     public ShopHandler(final Handler handler) {
         this.handler = handler;
-        inventory = new Inventory[]{Bukkit.createInventory(null, 9, handler.getConfig("shop.guiName", true).toString())};
+        inventory = new Inventory[]{Bukkit.createInventory(null, 18, handler.getConfig("shop.guiName", true).toString())};
         updateInventory();
     }
 
     public void updateInventory() {
         handler.runTask(() -> {
-            inventory[0] = Bukkit.createInventory(null, 9, handler.getConfig("shop.guiName", true).toString());
+            inventory[0] = Bukkit.createInventory(null, 18, handler.getConfig("shop.guiName", true).toString());
 
             final ItemStack nextPage = getHead("MHF_ArrowRight");
             final ItemMeta nextPageItemMeta = nextPage.getItemMeta();
@@ -60,12 +59,13 @@ public class ShopHandler {
                     previousPageItemMeta.getLore().set(1, "§7Current page: " + currentInventory+1);
                     nextPage.setItemMeta(nextPageItemMeta);
                     previousPage.setItemMeta(previousPageItemMeta);
-                    inventory[currentInventory-1].setItem(8, nextPage);
-                    inventory[currentInventory].setItem(0, previousPage);
+                    inventory[currentInventory-1].setItem(17, nextPage);
+                    inventory[currentInventory].setItem(9, previousPage);
+
                 }
                 material = Material.getMaterial(item.toUpperCase());
                 if (material != null) {
-                    inventory[currentInventory].setItem(i, handler.playerDataHandler.createItemStack(material, handler.getConfig("shop.items." + item + ".gui.name", true).toString(), handler.getConfigList("shop.items." + item + ".gui.lore", true, null), 1, false));
+                    inventory[currentInventory].setItem(i+9, handler.playerDataHandler.createItemStack(material, handler.getConfig("shop.items." + item + ".gui.name", true).toString(), handler.getConfigList("shop.items." + item + ".gui.lore", true, null), 1, false));
                     i++;
                 }
             }
@@ -73,16 +73,20 @@ public class ShopHandler {
     }
 
     public void openShopMenu(final Player player, final int menu) {
-        final Object exception = handler.getData("locations.game");
+        if (inventory[menu] != null) {
+            final Inventory inv = inventory[menu];
 
-        if (exception instanceof Location) {
-            if (((Location) exception).getY() - player.getLocation().getY() > 1) {
-                player.sendMessage("§cYou can't open the shop at such location!");
-                return;
-            }
+            final ItemStack head = handler.playerDataHandler.playersHeads.getOrDefault(player.getUniqueId(), new ItemStack(Material.SKULL_ITEM, 1, (short) 3));
+
+            final ItemMeta im = head.getItemMeta();
+
+            im.setLore(Arrays.asList("§7Kills §8» §e" + handler.playerDataHandler.getKills(player.getUniqueId()), "§7Deaths §8» §e" + handler.playerDataHandler.getDeaths(player.getUniqueId()), "§7Highest KillStreak §8» §e" + handler.playerDataHandler.getHighestKillStreak(player.getUniqueId()), "§7Points §8» §e" + handler.playerDataHandler.getPoints(player.getUniqueId()), "§7Souls §8» §e" + handler.playerDataHandler.getSouls(player.getUniqueId())));
+
+            head.setItemMeta(im);
+
+            inv.setItem(4, head);
+            player.openInventory(inv);
         }
-
-        if (inventory[menu] != null) player.openInventory(inventory[menu]);
     }
 
     public void buy(final Player player, final String shopItem) {
