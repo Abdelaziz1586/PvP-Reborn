@@ -81,6 +81,7 @@ public class Handler {
         pm.registerEvents(new RightClickNPC(this), main);
         pm.registerEvents(new InventoryClick(this), main);
         pm.registerEvents(new PlayerDropItem(this), main);
+        pm.registerEvents(new PlayerInteract(this), main);
         pm.registerEvents(new AsyncPlayerChat(this), main);
         pm.registerEvents(new PlayerJoin(playerDataHandler), main);
         pm.registerEvents(new PlayerQuit(playerDataHandler), main);

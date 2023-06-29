@@ -34,7 +34,7 @@ public class Profile implements CommandExecutor {
         return false;
     }
 
-    private void sendProfileDetails(final Player player, final String query) {
+    private void sendProfileDetails(final Player player, String query) {
         final UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + query).getBytes(StandardCharsets.UTF_8));
 
         Object o = handler.getData("players." + uuid + ".kills");
@@ -43,11 +43,13 @@ public class Profile implements CommandExecutor {
             return;
         }
 
-        player.sendMessage("§e§l-----------------------------------");
+        query = handler.playerDataHandler.getDisplayName(uuid, query);
+
+        player.sendMessage("\n§e§l---------------§6§lProfile§e§l---------------");
         player.sendMessage("§e" + query + "'s §7stats");
-        player.sendMessage("§eKills §8» " + o);
-        player.sendMessage("§eDeaths §8» " + handler.playerDataHandler.getDeaths(uuid));
-        player.sendMessage("§eRank §8» " + player.getDisplayName());
-        player.sendMessage("§e§l-----------------------------------");
+        player.sendMessage("§7Kills §8» §e" + o);
+        player.sendMessage("§7Deaths §8» §e" + handler.playerDataHandler.getDeaths(uuid));
+        player.sendMessage("§7Rank §8» §e" + query);
+        player.sendMessage("§e§l------------------------------------");
     }
 }

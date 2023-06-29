@@ -21,13 +21,14 @@ public class Stats implements CommandExecutor {
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
 
-                player.sendMessage("§e§l--------------------------§6§lStats§e§l--------------------------");
+                player.sendMessage("\n§e§l----------------§6§lStats§e§l----------------");
                 player.sendMessage("§7Kills §8» §e" + handler.getKills(player.getUniqueId()));
                 player.sendMessage("§7Deaths §8» §e" + handler.getDeaths(player.getUniqueId()));
                 player.sendMessage("§7Highest KillStreak §8» §e" + handler.getHighestKillStreak(player.getUniqueId()));
                 player.sendMessage("§7Points §8» §e" + handler.getPoints(player.getUniqueId()));
                 player.sendMessage("§7Souls §8» §e" + handler.getSouls(player.getUniqueId()));
                 player.sendMessage("§7Rank §8» §e" + player.getDisplayName());
+                player.sendMessage("§e§l-------------------------------------");
             }
         }).start();
         return false;

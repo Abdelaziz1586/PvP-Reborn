@@ -21,37 +21,40 @@ public class InventoryClick implements Listener {
 
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent event) {
-        final Player p = (Player) event.getWhoClicked();
-        if (handler.playerDataHandler.players.contains(p) && event.getInventory().getHolder() == null) {
+        if (event.getInventory().getHolder() == null) {
             event.setCancelled(true);
 
-            final Inventory inventory = event.getClickedInventory();
+            new Thread(() -> {
+                final Player player = (Player) event.getWhoClicked();
 
-            if (inventory == null || event.getClickedInventory().getSize() != 9) return;
+                final Inventory inventory = event.getClickedInventory();
 
-            handler.runTask(() -> {
+                if (inventory == null || event.getClickedInventory().getSize() != 18) return;
+
                 final ItemStack clickedItem = event.getCurrentItem();
 
-                if (clickedItem == null || clickedItem.getType().equals(Material.AIR))
-                    return;
+                if (clickedItem == null || clickedItem.getType().equals(Material.AIR)) return;
+
                 final ItemMeta clickedItemMeta = clickedItem.getItemMeta();
 
-                if (event.getRawSlot() == 8) {
+                if (clickedItem.getType().equals(Material.SKULL_ITEM)) return;
+
+                if (event.getRawSlot() == 17) {
                     final int page = Integer.parseInt(clickedItemMeta.getLore().get(1).split(": ")[1]) + 1;
-                    handler.shopHandler.openShopMenu(p, page);
+                    handler.shopHandler.openShopMenu(player, page);
                     return;
                 }
 
-                if (event.getRawSlot() == 0) {
+                if (event.getRawSlot() == 9) {
                     if (CraftItemStack.asNMSCopy(clickedItem).getTag().hasKey("previousPage")) {
                         final int page = Integer.parseInt(clickedItemMeta.getLore().get(1).split(": ")[1]) - 1;
-                        handler.shopHandler.openShopMenu(p, page);
+                        handler.shopHandler.openShopMenu(player, page);
                         return;
                     }
                 }
 
-                handler.shopHandler.buy(p, clickedItem.getType().name());
-            });
+                handler.shopHandler.buy(player, clickedItem.getType().name());
+            }).start();
         }
     }
 }

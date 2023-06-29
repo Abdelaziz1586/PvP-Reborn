@@ -83,7 +83,7 @@ public class PlayerDataHandler {
         final Object o = handler.getData("game.location");
         if (!(o instanceof Location)) {
             if (player.isOp()) {
-                player.sendMessage("§cYou haven't set the game location yet.");
+                player.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cYou haven't set the game location yet."));
                 return;
             }
             player.kickPlayer("§cGame is under setup, come back later!");
@@ -144,7 +144,7 @@ public class PlayerDataHandler {
 
         player.setFireTicks(0);
         updateScoreboard(player);
-        updatePlayerDisplayName(player);
+        player.setDisplayName(handler.playerDataHandler.getDisplayName(player.getUniqueId(), player.getName()));
     }
 
     public final boolean toggleProfileStatus(final Player player) {
@@ -172,8 +172,20 @@ public class PlayerDataHandler {
             addSouls(attacker.getUniqueId(), 1);
             addKillStreak(attacker.getUniqueId());
             addPoints(attacker.getUniqueId(), points);
+
             attacker.setHealth(attacker.getMaxHealth());
-            updatePlayerDisplayName(attacker);
+
+            attacker.setDisplayName(handler.playerDataHandler.getDisplayName(attacker.getUniqueId(), attacker.getName()));
+
+            final List<ItemStack> contents = Arrays.asList(attacker.getInventory().getContents());
+
+            for (int i = 0; i < contents.size(); i++) {
+                if (contents.get(i).getType() == Material.FLINT_AND_STEEL) {
+                    attacker.getInventory().setItem(i, createItemStack(Material.FLINT_AND_STEEL, "§7Flint and Steel", null, 1, false));
+                    break;
+                }
+            }
+
 
             if (getKillStreak(attacker.getUniqueId()) % 5 == 0) {
                 broadcast(handler.checkForPrefixAndReplace("%prefix% §e" + attacker.getDisplayName() + " §ahas a kill streak of §6" + getKillStreak(attacker.getUniqueId()) + "§a!"));
@@ -350,18 +362,20 @@ public class PlayerDataHandler {
         return item;
     }
 
-    public void updatePlayerDisplayName(final Player player) {
+    public final String getDisplayName(final UUID uuid, final String name) {
         if (api != null) {
 
-            final User user = api.getUserManager().getUser(player.getUniqueId());
+            final User user = api.getUserManager().getUser(uuid);
             if (user != null) {
                 final Group group = api.getGroupManager().getGroup(user.getPrimaryGroup());
                 final String prefix = group != null ? group.getCachedData().getMetaData().getPrefix() : null;
 
-                player.setDisplayName(getRank(player.getUniqueId()) + " " + (prefix != null ? prefix + " " + player.getName() : player.getName()));
+                return getRank(uuid) + " " + (prefix != null ? prefix + " " + name : name);
             }
         }
+        return getRank(uuid) + " " + name;
     }
+
 
     // Internal Functions
 
@@ -391,7 +405,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint and Steel", null, 1, false));
             return;
         }
 
@@ -416,7 +430,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint and Steel", null, 1, false));
             return;
         }
 
@@ -441,7 +455,7 @@ public class PlayerDataHandler {
             inventory.setItem(sword, enchant(createItemStack(Material.IRON_SWORD, "§7Iron Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
             inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
             inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 2));
-            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
+            inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint and Steel", null, 1, false));
             return;
         }
 
@@ -465,7 +479,7 @@ public class PlayerDataHandler {
         inventory.setItem(sword, enchant(createItemStack(Material.STONE_SWORD, "§7Stone Sword", null, 1, true), Enchantment.DAMAGE_ALL, 1));
         inventory.setItem(rod, enchant(createItemStack(Material.FISHING_ROD, "§7Fishing Rod", null, 1, true), Enchantment.DURABILITY, 3));
         inventory.setItem(bow, enchant(createItemStack(Material.BOW, "§7Bow", null, 1, true), Enchantment.ARROW_DAMAGE, 1));
-        inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint And Steel", null, 1, true));
+        inventory.setItem(flint, createItemStack(Material.FLINT_AND_STEEL, "§7Flint and Steel", null, 1, false));
     }
 
     private ItemStack enchant(final ItemStack item, final Enchantment enchantment, final int level) {
@@ -494,7 +508,7 @@ public class PlayerDataHandler {
                     o = handler.getConfig("deathMessages.fireDeath.self.chat.messages", false);
                     if (o instanceof List) {
                         list = (List<?>) o;
-                        victim.sendMessage(ChatColor.translateAlternateColorCodes('&', list.get(random.nextInt(list.size() - 1)).toString().replace("%victim%", victim.getDisplayName())));
+                        victim.sendMessage(handler.checkForPrefixAndReplace(ChatColor.translateAlternateColorCodes('&', list.get(random.nextInt(list.size() - 1)).toString().replace("%victim%", victim.getDisplayName()))));
                     }
                 }
 
@@ -524,7 +538,7 @@ public class PlayerDataHandler {
                 o = handler.getConfig("deathMessages.randomDeath.self.chat.messages", false);
                 if (o instanceof List) {
                     list = (List<?>) o;
-                    victim.sendMessage(ChatColor.translateAlternateColorCodes('&', list.get(random.nextInt(list.size() - 1)).toString().replace("%victim%", victim.getDisplayName())));
+                    victim.sendMessage(handler.checkForPrefixAndReplace(ChatColor.translateAlternateColorCodes('&', list.get(random.nextInt(list.size() - 1)).toString().replace("%victim%", victim.getDisplayName()))));
                 }
             }
 
@@ -553,19 +567,19 @@ public class PlayerDataHandler {
         if (Boolean.parseBoolean(handler.getConfig("kill.messages.chat.victim.enabled", false).toString())) {
             o = handler.getConfig("kill.messages.chat.victim.message", true);
             if (o != null)
-                victim.sendMessage(o.toString()
+                victim.sendMessage(handler.checkForPrefixAndReplace(o.toString()
                         .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
-                        .replace("%victim%", victim.getDisplayName()));
+                        .replace("%victim%", victim.getDisplayName())));
         }
 
         if (Boolean.parseBoolean(handler.getConfig("kill.messages.chat.attacker.enabled", false).toString())) {
             o = handler.getConfig("kill.messages.chat.attacker.message", true);
             if (o != null)
-                attacker.sendMessage(o.toString()
+                attacker.sendMessage(handler.checkForPrefixAndReplace(o.toString()
                         .replace("%points%", String.valueOf(points))
                         .replace("%attacker%", attacker.getDisplayName())
-                        .replace("%victim%", victim.getDisplayName()));
+                        .replace("%victim%", victim.getDisplayName())));
         }
 
         if (Boolean.parseBoolean(handler.getConfig("kill.messages.action-bar.victim.enabled", false).toString())) {

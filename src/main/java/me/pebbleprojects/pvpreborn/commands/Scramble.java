@@ -26,12 +26,12 @@ public class Scramble implements CommandExecutor {
 
                 if (handler.getData("players." + uuid + ".scramble") == null) {
                     handler.writeData("players." + uuid + ".scramble", true);
-                    handler.playerDataHandler.updatePlayerDisplayName(player);
+                    player.setDisplayName(handler.playerDataHandler.getDisplayName(player.getUniqueId(), player.getName()));
                     sender.sendMessage(handler.checkForPrefixAndReplace("%prefix% §aToggled ON scramble."));
                     return;
                 }
                 handler.writeData("players." + uuid + ".scramble", null);
-                handler.playerDataHandler.updatePlayerDisplayName(player);
+                player.setDisplayName(handler.playerDataHandler.getDisplayName(player.getUniqueId(), player.getName()));
                 sender.sendMessage(handler.checkForPrefixAndReplace("%prefix% §cToggled OFF scramble."));
             }
         }).start();

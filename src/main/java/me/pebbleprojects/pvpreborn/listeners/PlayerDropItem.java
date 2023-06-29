@@ -22,21 +22,24 @@ public class PlayerDropItem implements Listener {
 
     @EventHandler
     public void onPlayerDropItem(final PlayerDropItemEvent event) {
-        final Player player = event.getPlayer();
-        if (handler.playerDataHandler.players.contains(player)) {
-            event.setCancelled(true);
-            handler.runTask(() -> {
-                final ItemStack droppedItem = event.getItemDrop().getItemStack();
-                if (sureDestroy.containsKey(player) && sureDestroy.get(player).equals(droppedItem)) {
-                    handler.runTaskLater(() -> player.getInventory().remove(droppedItem), 1);
-                    sureDestroy.remove(player);
-                    player.sendMessage(handler.getConfig("otherMessages.itemDropDestruction.destroyedMessage", true).toString());
-                    return;
-                }
-                sureDestroy.put(player, droppedItem);
-                player.sendMessage(Objects.requireNonNull(handler.getConfig("otherMessages.itemDropDestruction.confirmMessage", true).toString()));
-                handler.runTaskLater(() -> sureDestroy.remove(player), 5*20);
-            });
-        }
+        event.setCancelled(true);
+
+        new Thread(() -> {
+            final Player player = event.getPlayer();
+
+            if (!player.hasPermission("pvp.admin")) return;
+
+            final ItemStack droppedItem = event.getItemDrop().getItemStack();
+
+            if (sureDestroy.containsKey(player) && sureDestroy.get(player).equals(droppedItem)) {
+                handler.runTaskLater(() -> player.getInventory().remove(droppedItem), 1);
+                sureDestroy.remove(player);
+                player.sendMessage(handler.checkForPrefixAndReplace(handler.getConfig("otherMessages.itemDropDestruction.destroyedMessage", true).toString()));
+                return;
+            }
+            sureDestroy.put(player, droppedItem);
+            player.sendMessage(handler.checkForPrefixAndReplace(Objects.requireNonNull(handler.getConfig("otherMessages.itemDropDestruction.confirmMessage", true).toString())));
+            handler.runTaskLater(() -> sureDestroy.remove(player), 5 * 20);
+        }).start();
     }
 }

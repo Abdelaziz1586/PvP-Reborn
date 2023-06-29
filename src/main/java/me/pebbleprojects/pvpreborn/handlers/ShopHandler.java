@@ -109,19 +109,19 @@ public class ShopHandler {
                 final int price = (Integer) o;
                 if (handler.playerDataHandler.getSouls(player.getUniqueId()) >= price) {
                     if (!hasFreeSpace(player)) {
-                        player.sendMessage(handler.getConfig("shop.fullInventory", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
+                        player.sendMessage(handler.checkForPrefixAndReplace(handler.getConfig("shop.fullInventory", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString())));
                         return;
                     }
                     final PlayerInventory inventory = player.getInventory();
                     if (!Boolean.parseBoolean(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".canBuyMultipleOf", false).toString())  && (inventory.contains(itemStack) || Arrays.asList(inventory.getArmorContents()).contains(itemStack))) {
-                        player.sendMessage(handler.getConfig("shop.alreadyHave", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
+                        player.sendMessage(handler.checkForPrefixAndReplace(handler.getConfig("shop.alreadyHave", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString())));
                         return;
                     }
                     try {
                         itemStack.setAmount(Integer.parseInt(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".amount", false).toString()));
                     } catch (final NumberFormatException ignored) {}
                     handler.playerDataHandler.removeSouls(player.getUniqueId(), price);
-                    player.sendMessage(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".purchaseMessage", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
+                    player.sendMessage(handler.checkForPrefixAndReplace(handler.getConfig("shop.items." + shopItem.toLowerCase() + ".purchaseMessage", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString())));
                     handler.playerDataHandler.updateScoreboard(player);
                     if (typeNameString.endsWith("_HELMET")) {
                         inventory.setHelmet(itemStack);
@@ -146,7 +146,7 @@ public class ShopHandler {
                     inventory.addItem(itemStack);
                     return;
                 }
-                player.sendMessage(handler.getConfig("shop.noEnoughSouls", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString()));
+                player.sendMessage(handler.checkForPrefixAndReplace(handler.getConfig("shop.noEnoughSouls", true).toString().replace("%query%", handler.getConfig("shop.items." + shopItem.toLowerCase() + ".queryName", true).toString())));
             }
         }
     }

@@ -18,43 +18,45 @@ public class EntityDamage implements Listener {
 
     @EventHandler
     public void onEntityDamage(final EntityDamageEvent event) {
-        Entity entity = event.getEntity();
+        new Thread(() -> {
+            Entity entity = event.getEntity();
 
-        if (entity instanceof Player) {
-            final Player player = (Player) entity;
+            if (entity instanceof Player) {
+                final Player player = (Player) entity;
 
-            player.setMaximumNoDamageTicks(17);
+                player.setMaximumNoDamageTicks(17);
 
-            if (handler.players.contains(player)) {
-                final EntityDamageEvent.DamageCause cause = event.getCause();
-                if (cause.equals(EntityDamageEvent.DamageCause.FALL)) {
-                    event.setCancelled(true);
-                    return;
-                }
+                if (handler.players.contains(player)) {
+                    final EntityDamageEvent.DamageCause cause = event.getCause();
+                    if (cause.equals(EntityDamageEvent.DamageCause.FALL)) {
+                        event.setCancelled(true);
+                        return;
+                    }
 
-                if (cause.equals(EntityDamageEvent.DamageCause.VOID)) {
-                    event.setCancelled(true);
-                    handler.death(player, null, cause);
-                    return;
-                }
+                    if (cause.equals(EntityDamageEvent.DamageCause.VOID)) {
+                        event.setCancelled(true);
+                        handler.death(player, null, cause);
+                        return;
+                    }
 
-                Player attacker = null;
+                    Player attacker = null;
 
-                if (event instanceof EntityDamageByEntityEvent) {
-                    entity = ((EntityDamageByEntityEvent) event).getDamager();
-                    if (entity instanceof Player) {
-                        attacker = (Player) entity;
-                        if (!handler.players.contains(attacker) || handler.buildMode.contains(attacker.getUniqueId())) {
-                            event.setCancelled(true);
-                            return;
+                    if (event instanceof EntityDamageByEntityEvent) {
+                        entity = ((EntityDamageByEntityEvent) event).getDamager();
+                        if (entity instanceof Player) {
+                            attacker = (Player) entity;
+                            if (!handler.players.contains(attacker) || handler.buildMode.contains(attacker.getUniqueId())) {
+                                event.setCancelled(true);
+                                return;
+                            }
                         }
                     }
-                }
 
-                if (player.getHealth() <= event.getDamage())
-                    handler.death(player, attacker, cause);
+                    if (player.getHealth() <= event.getDamage())
+                        handler.death(player, attacker, cause);
+                }
             }
-        }
+        }).start();
     }
 
 }

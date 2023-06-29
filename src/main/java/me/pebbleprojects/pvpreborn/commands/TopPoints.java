@@ -25,7 +25,7 @@ public class TopPoints implements CommandExecutor {
 
             list.sort(Comparator.comparingInt(uuid -> handler.playerDataHandler.getPoints(UUID.fromString(uuid.toString()))));
 
-            sender.sendMessage("§e§l--------------------------§6§lTop Points§e§l--------------------------");
+            sender.sendMessage("§e§l----------------§6§lTop Points§e§l----------------");
 
             UUID uuid;
             User user;
@@ -54,7 +54,7 @@ public class TopPoints implements CommandExecutor {
                 if (i >= 10) break;
             }
 
-            sender.sendMessage("§e§l--------------------------§6§lTop Points§e§l--------------------------");
+            sender.sendMessage("§e§l----------------§6§lTop Points§e§l----------------");
 
         }).start();
         return false;

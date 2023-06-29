@@ -25,7 +25,7 @@ public class TopKills implements CommandExecutor {
 
             list.sort(Comparator.comparingInt(uuid -> handler.playerDataHandler.getKills(UUID.fromString(uuid.toString()))));
 
-            sender.sendMessage("§e§l--------------------------§6§lTop Kills§e§l--------------------------");
+            sender.sendMessage("§e§l----------------§6§lTop Kills§e§l----------------");
 
             UUID uuid;
             User user;
@@ -54,7 +54,7 @@ public class TopKills implements CommandExecutor {
                 if (i >= 10) break;
             }
 
-            sender.sendMessage("§e§l--------------------------§6§lTop Kills§e§l--------------------------");
+            sender.sendMessage("§e§l----------------§6§lTop Kills§e§l----------------");
 
         }).start();
         return false;
