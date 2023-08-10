@@ -107,7 +107,6 @@ public class PlayerDataHandler {
         if (scoreboards.containsKey(player.getUniqueId())) {
             scoreboards.get(player.getUniqueId()).delete();
             scoreboards.remove(player.getUniqueId());
-            return;
         }
 
         handler.npcHandler.unloadNPCs(player);

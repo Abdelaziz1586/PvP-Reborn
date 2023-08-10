@@ -6,6 +6,7 @@ public class QuestsHandler {
 
     private final Handler handler;
 
+
     public QuestsHandler(final Handler handler) {
         this.handler = handler;
     }
