@@ -129,6 +129,7 @@ public class PlayerDataHandler {
         final Object o = handler.getData("game.location");
 
         if (o instanceof Location) {
+
             if (firstJoin) {
                 new Timer().schedule(new TimerTask() {
                     @Override
